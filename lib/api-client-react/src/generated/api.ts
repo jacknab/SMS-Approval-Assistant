@@ -30,6 +30,8 @@ import type {
   ComplianceMaterials,
   DashboardSummary,
   HealthStatus,
+  OnboardingAssist,
+  OnboardingAssistInput,
   PublicCompliance,
   ReadinessReport,
   Registration
@@ -802,6 +804,95 @@ export const useCreateCampaignDraft = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getCreateCampaignDraftMutationOptions(options));
+    }
+
+export const getCreateOnboardingAssistUrl = () => {
+
+
+
+
+  return `/api/onboarding-assists`
+}
+
+/**
+ * Suggests business and message-purpose categories from a user description, or drafts editable opt-in and consent wording from the details supplied. It does not invent business facts or save changes.
+ * @summary Assist with business classification or SMS consent onboarding
+ */
+export const createOnboardingAssist = async (onboardingAssistInput: OnboardingAssistInput, options?: Parameters<typeof customFetch>[1]): Promise<OnboardingAssist> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<OnboardingAssist>(getCreateOnboardingAssistUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(onboardingAssistInput)
+  }
+);}
+
+
+
+
+
+export const getCreateOnboardingAssistMutationKey = () => ['createOnboardingAssist'] as const;
+
+export const getCreateOnboardingAssistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOnboardingAssist>>, TError,CreateOnboardingAssistMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOnboardingAssist>>, TError,CreateOnboardingAssistMutationVariables, TContext> => {
+
+const mutationKey = getCreateOnboardingAssistMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOnboardingAssist>>, CreateOnboardingAssistMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createOnboardingAssist(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOnboardingAssistMutationResult = NonNullable<Awaited<ReturnType<typeof createOnboardingAssist>>>
+    export type CreateOnboardingAssistMutationBody = BodyType<OnboardingAssistInput>
+    export type CreateOnboardingAssistMutationError = ErrorType<void>
+    export type CreateOnboardingAssistMutationVariables = {data: BodyType<OnboardingAssistInput>}
+
+    /**
+ * @summary Assist with business classification or SMS consent onboarding
+ */
+export const useCreateOnboardingAssist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOnboardingAssist>>, TError,CreateOnboardingAssistMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createOnboardingAssist>>,
+        TError,
+        CreateOnboardingAssistMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateOnboardingAssistMutationOptions(options));
     }
 
 export const getGenerateMaterialsUrl = (businessId: string,) => {

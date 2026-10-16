@@ -14,12 +14,12 @@ import {
   X, XCircle,
 } from 'lucide-react';
 import {
-  useCreateBusiness, useCreateCampaignDraft, useCreateMockSubmission, useGenerateMaterials, useGetBusiness,
+  useCreateBusiness, useCreateCampaignDraft, useCreateOnboardingAssist, useCreateMockSubmission, useGenerateMaterials, useGetBusiness,
   useGetDashboardSummary, useGetPublicCompliance, useGetReadiness, useListBusinesses,
   useListRegistrations, useUpdateBusiness, getGetBusinessQueryKey,
   getGetDashboardSummaryQueryKey, getGetPublicComplianceQueryKey, getGetReadinessQueryKey,
   getListBusinessesQueryKey, getListRegistrationsQueryKey,
-  type Business, type BusinessInput, type CampaignDraftInput,
+  type Business, type BusinessInput, type CampaignDraftInput, type OnboardingAssist, type OnboardingAssistInput,
 } from '@workspace/api-client-react';
 import { Link, Redirect, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -376,10 +376,35 @@ function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { 
   } : blankValues;
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: initialValues, mode: 'onTouched' });
   const [step, setStep] = useState(1);
+  const [businessSummary, setBusinessSummary] = useState('');
+  const [businessSuggestion, setBusinessSuggestion] = useState<OnboardingAssist | null>(null);
+  const [businessSuggestionApplied, setBusinessSuggestionApplied] = useState(false);
   const campaignDraft = useCreateCampaignDraft();
+  const businessAssist = useCreateOnboardingAssist();
+  const consentAssist = useCreateOnboardingAssist();
+  const suggestBusiness = () => {
+    const values = form.getValues();
+    const data: OnboardingAssistInput = {
+      scope: 'business',
+      businessSummary: businessSummary.trim(),
+      businessName: values.businessName || undefined,
+      brandName: values.brandName || undefined,
+    };
+    businessAssist.mutate({ data }, { onSuccess: suggestion => {
+      setBusinessSuggestion(suggestion);
+      setBusinessSuggestionApplied(false);
+    } });
+  };
+  const applyBusinessSuggestion = () => {
+    if (!businessSuggestion?.businessType || !businessSuggestion.useCase) return;
+    form.setValue('businessType', businessSuggestion.businessType, { shouldDirty: true, shouldValidate: true });
+    form.setValue('useCase', businessSuggestion.useCase, { shouldDirty: true, shouldValidate: true });
+    setBusinessSuggestionApplied(true);
+  };
   const draftCampaign = () => {
     const values = form.getValues();
     const data: CampaignDraftInput = {
+      businessSummary: businessSummary.trim() || undefined,
       businessName: values.businessName,
       brandName: values.brandName,
       websiteUrl: values.websiteUrl,
@@ -393,6 +418,32 @@ function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { 
       form.setValue('sampleMessages', drafts.sampleMessages, { shouldDirty: true, shouldValidate: true });
     } });
   };
+  const draftConsent = () => {
+    const values = form.getValues();
+    const data: OnboardingAssistInput = {
+      scope: 'consent',
+      businessSummary: businessSummary.trim() || undefined,
+      businessName: values.businessName,
+      brandName: values.brandName,
+      businessType: values.businessType,
+      useCase: values.useCase,
+      campaignDescription: values.campaignDescription,
+      messageFrequency: values.messageFrequency,
+      sampleMessages: values.sampleMessages.filter(Boolean),
+      optInMethod: values.optInMethod,
+      optInDescription: values.optInDescription,
+      consentCheckboxPresent: values.consentCheckboxPresent,
+      consentCopy: values.consentCopy ?? '',
+    };
+    consentAssist.mutate({ data }, { onSuccess: drafts => {
+      if (typeof drafts.optInDescription === 'string') {
+        form.setValue('optInDescription', drafts.optInDescription, { shouldDirty: true, shouldValidate: true });
+      }
+      if (typeof drafts.consentCopy === 'string') {
+        form.setValue('consentCopy', drafts.consentCopy, { shouldDirty: true, shouldValidate: true });
+      }
+    } });
+  };
   const next = async () => {
     const keys: (keyof FormValues)[][] = [
       businessFieldKeys,
@@ -404,12 +455,32 @@ function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { 
   return <Form {...form}><form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7" data-testid="form-business">
     <div className="flex items-center gap-2" data-testid="onboarding-progress">{['Business', 'Campaign', 'Consent'].map((label, i) => <div key={label} className="flex flex-1 items-center gap-2"><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold ${step > i + 1 ? 'bg-[hsl(147_34%_88%)] text-[hsl(157_32%_31%)]' : step === i + 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{step > i + 1 ? <Check size={14} /> : i + 1}</span><span className={`hidden text-xs font-semibold sm:inline ${step === i + 1 ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>{i < 2 && <span className="h-px flex-1 bg-border" />}</div>)}</div>
     <div className="rounded-xl bg-muted/70 p-4"><h3 className="text-sm font-bold">{step === 1 ? 'Tell us about the business' : step === 2 ? 'Describe the campaign' : 'Make consent easy to understand'}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{step === 1 ? 'Use the details that match your real business records.' : step === 2 ? 'Be specific about message purpose, volume, and examples.' : 'Clear opt-in and opt-out practices are central to customer trust.'}</p></div>
-    {step === 1 && <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
-       {fieldMeta.filter(field => businessFieldKeys.includes(field.key)).map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem><FormLabel className="text-[13px] font-semibold">{field.label}</FormLabel><FormControl><BusinessFieldControl field={field} form={form} /></FormControl><FormMessage /></FormItem>} />)}
-    </div>}
+     {step === 1 && <div className="space-y-5">
+       <section className="rounded-xl border border-border bg-muted/40 p-4" data-testid="business-ai-assist">
+         <div className="flex flex-wrap items-start justify-between gap-3">
+           <div className="max-w-2xl"><p className="text-sm font-semibold">Need help choosing a business type or message purpose?</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Describe what your business does and what you plan to text customers about. AI can suggest the two categories; legal names, addresses, and other official facts must come from your records.</p></div>
+           <Button type="button" data-testid="button-suggest-business-details" onClick={suggestBusiness} disabled={businessAssist.isPending || !businessSummary.trim()} className="shrink-0 gap-2 rounded-xl">
+             {businessAssist.isPending ? <LoaderCircle size={15} className="animate-spin" /> : <Sparkles size={15} />}
+             {businessAssist.isPending ? 'Reviewing…' : 'Suggest with AI'}
+           </Button>
+         </div>
+         <Textarea data-testid="input-business-summary" className="mt-3" rows={3} maxLength={1200} placeholder="Example: We repair bicycles and want to text customers when a repair is ready and answer service questions." value={businessSummary} onChange={event => { setBusinessSummary(event.target.value); setBusinessSuggestion(null); setBusinessSuggestionApplied(false); }} />
+         {businessAssist.isError && <p role="alert" className="mt-2 text-xs font-semibold text-destructive" data-testid="business-assist-error">The business suggestions could not be prepared. Your selections are unchanged; try again.</p>}
+         {businessSuggestion && <div className="mt-3 rounded-lg border border-border bg-background p-3" data-testid="business-assist-suggestion">
+           <p className="text-xs font-bold">Suggested starting point</p>
+           <p className="mt-1 text-sm font-semibold capitalize">{businessSuggestion.businessType?.replaceAll('_', ' ')} · {businessSuggestion.useCase?.replaceAll('_', ' ')}</p>
+           {businessSuggestion.rationale && <p className="mt-1 text-xs leading-5 text-muted-foreground">{businessSuggestion.rationale}</p>}
+           <Button type="button" variant="outline" data-testid="button-apply-business-suggestion" onClick={applyBusinessSuggestion} disabled={businessSuggestionApplied} className="mt-3 h-9 rounded-lg text-xs">{businessSuggestionApplied ? 'Suggestions applied' : 'Use these suggestions'}</Button>
+           <p className="mt-2 text-[11px] leading-5 text-muted-foreground">Confirm these choices match your real business and intended messages.</p>
+         </div>}
+       </section>
+       <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
+         {fieldMeta.filter(field => businessFieldKeys.includes(field.key)).map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem><FormLabel className="text-[13px] font-semibold">{field.label}</FormLabel><FormControl><BusinessFieldControl field={field} form={form} /></FormControl><FormMessage /></FormItem>} />)}
+       </div>
+     </div>}
      {step === 2 && <div className="space-y-5">
        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-4">
-         <div><p className="text-sm font-semibold">Need a starting point?</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Drafts use your business name, business type, and selected message purpose. Review and edit every field before saving.</p></div>
+          <div><p className="text-sm font-semibold">Need a starting point?</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Drafts use your business description, business type, and selected message purpose. Review and edit every field before saving.</p></div>
          <Button type="button" data-testid="button-draft-campaign" onClick={draftCampaign} disabled={campaignDraft.isPending} className="shrink-0 gap-2 rounded-xl">
            {campaignDraft.isPending ? <LoaderCircle size={15} className="animate-spin" /> : <Sparkles size={15} />}
            {campaignDraft.isPending ? 'Preparing drafts…' : 'Draft with AI'}
@@ -422,6 +493,15 @@ function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { 
        </div>
     </div>}
     {step === 3 && <div className="space-y-5">
+       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-4">
+         <div className="max-w-2xl"><p className="text-sm font-semibold">Draft opt-in and consent wording</p><p className="mt-1 text-xs leading-5 text-muted-foreground">AI uses your campaign, chosen opt-in method, and any details you entered. It marks unknown steps, frequency, and links for you to confirm; the checkbox setting remains your factual choice.</p></div>
+         <Button type="button" data-testid="button-draft-consent" onClick={draftConsent} disabled={consentAssist.isPending} className="shrink-0 gap-2 rounded-xl">
+           {consentAssist.isPending ? <LoaderCircle size={15} className="animate-spin" /> : <Sparkles size={15} />}
+           {consentAssist.isPending ? 'Preparing consent drafts…' : 'Draft consent with AI'}
+         </Button>
+       </div>
+       {consentAssist.isError && <p role="alert" className="text-xs font-semibold text-destructive" data-testid="consent-assist-error">The consent drafts could not be prepared. Your entries are unchanged; check your connection or try again.</p>}
+       {consentAssist.isSuccess && <p role="status" className="text-xs font-semibold text-[hsl(157_32%_31%)]" data-testid="consent-assist-success">Editable drafts are in the fields below. Confirm they describe your actual sign-up flow before saving.</p>}
        <FormField control={form.control} name="optInMethod" render={() => <FormItem><FormLabel className="text-[13px] font-semibold">How do people give permission?</FormLabel><FormControl><BusinessFieldControl field={fieldMeta.find(field => field.key === 'optInMethod')!} form={form} /></FormControl><FormMessage /></FormItem>} />
       <FormField control={form.control} name="optInDescription" render={({ field }) => <FormItem><FormLabel className="text-[13px] font-semibold">Explain the opt-in experience</FormLabel><FormControl><Textarea data-testid="input-optInDescription" rows={4} placeholder="Where does a customer see the offer? What action do they take?" {...field} /></FormControl><FormMessage /></FormItem>} />
       <FormField control={form.control} name="consentCheckboxPresent" render={({ field }) => <FormItem className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-4"><FormControl><Checkbox data-testid="input-consent-checkbox-present" checked={field.value} onCheckedChange={field.onChange} className="mt-0.5" /></FormControl><div><FormLabel className="text-sm font-semibold">My web form has a separate, unchecked SMS consent checkbox.</FormLabel><FormDescription className="mt-1 text-xs leading-5">Only select if customers can choose SMS separately from other terms.</FormDescription></div></FormItem>} />

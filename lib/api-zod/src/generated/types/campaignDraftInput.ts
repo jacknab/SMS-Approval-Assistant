@@ -10,6 +10,8 @@ import type { CampaignDraftInputEntityType } from './campaignDraftInputEntityTyp
 import type { CampaignDraftInputUseCase } from './campaignDraftInputUseCase';
 
 export interface CampaignDraftInput {
+  /** @maxLength 1200 */
+  businessSummary?: string;
   /**
      * @minLength 1
      * @maxLength 200

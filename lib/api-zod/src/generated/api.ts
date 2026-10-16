@@ -464,6 +464,8 @@ export const PrepareCampaignAssistantResponse = zod.object({
  * Uses the authenticated user's selected business type and message purpose to prepare editable campaign wording. It does not save the draft or contact Twilio.
  * @summary Draft campaign wording from a business profile
  */
+export const createCampaignDraftBodyBusinessSummaryMax = 1200;
+
 export const createCampaignDraftBodyBusinessNameMax = 200;
 
 export const createCampaignDraftBodyBrandNameMax = 200;
@@ -473,6 +475,7 @@ export const createCampaignDraftBodyWebsiteUrlMax = 2048;
 
 
 export const CreateCampaignDraftBody = zod.object({
+  "businessSummary": zod.string().max(createCampaignDraftBodyBusinessSummaryMax).optional(),
   "businessName": zod.string().min(1).max(createCampaignDraftBodyBusinessNameMax),
   "brandName": zod.string().min(1).max(createCampaignDraftBodyBrandNameMax),
   "websiteUrl": zod.string().url().max(createCampaignDraftBodyWebsiteUrlMax),
@@ -496,6 +499,63 @@ export const CreateCampaignDraftResponse = zod.object({
   "campaignDescription": zod.string().max(createCampaignDraftResponseCampaignDescriptionMax),
   "messageFrequency": zod.string().max(createCampaignDraftResponseMessageFrequencyMax),
   "sampleMessages": zod.array(zod.string().max(createCampaignDraftResponseSampleMessagesItemMax)).min(createCampaignDraftResponseSampleMessagesMin).max(createCampaignDraftResponseSampleMessagesMax)
+})
+
+
+/**
+ * Suggests business and message-purpose categories from a user description, or drafts editable opt-in and consent wording from the details supplied. It does not invent business facts or save changes.
+ * @summary Assist with business classification or SMS consent onboarding
+ */
+export const createOnboardingAssistBodyBusinessSummaryMax = 1200;
+
+export const createOnboardingAssistBodyBusinessNameMax = 200;
+
+export const createOnboardingAssistBodyBrandNameMax = 200;
+
+export const createOnboardingAssistBodyCampaignDescriptionMax = 1200;
+
+export const createOnboardingAssistBodyMessageFrequencyMax = 300;
+
+export const createOnboardingAssistBodySampleMessagesItemMax = 500;
+
+export const createOnboardingAssistBodySampleMessagesMax = 5;
+
+export const createOnboardingAssistBodyOptInDescriptionMax = 1200;
+
+export const createOnboardingAssistBodyConsentCopyMax = 1200;
+
+
+
+export const CreateOnboardingAssistBody = zod.object({
+  "scope": zod.enum(['business', 'consent']),
+  "businessSummary": zod.string().max(createOnboardingAssistBodyBusinessSummaryMax).optional(),
+  "businessName": zod.string().max(createOnboardingAssistBodyBusinessNameMax).optional(),
+  "brandName": zod.string().max(createOnboardingAssistBodyBrandNameMax).optional(),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']).optional(),
+  "useCase": zod.enum(['account_notifications', 'customer_care', 'marketing', 'mixed']).optional(),
+  "campaignDescription": zod.string().max(createOnboardingAssistBodyCampaignDescriptionMax).optional(),
+  "messageFrequency": zod.string().max(createOnboardingAssistBodyMessageFrequencyMax).optional(),
+  "sampleMessages": zod.array(zod.string().max(createOnboardingAssistBodySampleMessagesItemMax)).max(createOnboardingAssistBodySampleMessagesMax).optional(),
+  "optInMethod": zod.enum(['website_form', 'keyword', 'point_of_sale', 'paper_form', 'verbal', 'other']).optional(),
+  "optInDescription": zod.string().max(createOnboardingAssistBodyOptInDescriptionMax).optional(),
+  "consentCheckboxPresent": zod.boolean().optional(),
+  "consentCopy": zod.string().max(createOnboardingAssistBodyConsentCopyMax).optional()
+})
+
+export const createOnboardingAssistResponseRationaleMax = 500;
+
+export const createOnboardingAssistResponseOptInDescriptionMax = 1200;
+
+export const createOnboardingAssistResponseConsentCopyMax = 1200;
+
+
+
+export const CreateOnboardingAssistResponse = zod.object({
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']).optional(),
+  "useCase": zod.enum(['account_notifications', 'customer_care', 'marketing', 'mixed']).optional(),
+  "rationale": zod.string().max(createOnboardingAssistResponseRationaleMax).optional(),
+  "optInDescription": zod.string().max(createOnboardingAssistResponseOptInDescriptionMax).optional(),
+  "consentCopy": zod.string().max(createOnboardingAssistResponseConsentCopyMax).optional()
 })
 
 

@@ -424,6 +424,8 @@ export const CampaignDraftInputUseCase = {
 } as const;
 
 export interface CampaignDraftInput {
+  /** @maxLength 1200 */
+  businessSummary?: string;
   /**
      * @minLength 1
      * @maxLength 200
@@ -452,6 +454,114 @@ export interface CampaignDraft {
      * @items.maxLength 500
      */
   sampleMessages: string[];
+}
+
+export type OnboardingAssistInputScope = typeof OnboardingAssistInputScope[keyof typeof OnboardingAssistInputScope];
+
+
+export const OnboardingAssistInputScope = {
+  business: 'business',
+  consent: 'consent',
+} as const;
+
+export type OnboardingAssistInputBusinessType = typeof OnboardingAssistInputBusinessType[keyof typeof OnboardingAssistInputBusinessType];
+
+
+export const OnboardingAssistInputBusinessType = {
+  retail_ecommerce: 'retail_ecommerce',
+  professional_services: 'professional_services',
+  home_field_services: 'home_field_services',
+  healthcare_wellness: 'healthcare_wellness',
+  education: 'education',
+  hospitality_events: 'hospitality_events',
+  financial_services: 'financial_services',
+  nonprofit: 'nonprofit',
+  other: 'other',
+} as const;
+
+export type OnboardingAssistInputUseCase = typeof OnboardingAssistInputUseCase[keyof typeof OnboardingAssistInputUseCase];
+
+
+export const OnboardingAssistInputUseCase = {
+  account_notifications: 'account_notifications',
+  customer_care: 'customer_care',
+  marketing: 'marketing',
+  mixed: 'mixed',
+} as const;
+
+export type OnboardingAssistInputOptInMethod = typeof OnboardingAssistInputOptInMethod[keyof typeof OnboardingAssistInputOptInMethod];
+
+
+export const OnboardingAssistInputOptInMethod = {
+  website_form: 'website_form',
+  keyword: 'keyword',
+  point_of_sale: 'point_of_sale',
+  paper_form: 'paper_form',
+  verbal: 'verbal',
+  other: 'other',
+} as const;
+
+export interface OnboardingAssistInput {
+  scope: OnboardingAssistInputScope;
+  /** @maxLength 1200 */
+  businessSummary?: string;
+  /** @maxLength 200 */
+  businessName?: string;
+  /** @maxLength 200 */
+  brandName?: string;
+  businessType?: OnboardingAssistInputBusinessType;
+  useCase?: OnboardingAssistInputUseCase;
+  /** @maxLength 1200 */
+  campaignDescription?: string;
+  /** @maxLength 300 */
+  messageFrequency?: string;
+  /**
+     * @maxItems 5
+     * @items.maxLength 500
+     */
+  sampleMessages?: string[];
+  optInMethod?: OnboardingAssistInputOptInMethod;
+  /** @maxLength 1200 */
+  optInDescription?: string;
+  consentCheckboxPresent?: boolean;
+  /** @maxLength 1200 */
+  consentCopy?: string;
+}
+
+export type OnboardingAssistBusinessType = typeof OnboardingAssistBusinessType[keyof typeof OnboardingAssistBusinessType];
+
+
+export const OnboardingAssistBusinessType = {
+  retail_ecommerce: 'retail_ecommerce',
+  professional_services: 'professional_services',
+  home_field_services: 'home_field_services',
+  healthcare_wellness: 'healthcare_wellness',
+  education: 'education',
+  hospitality_events: 'hospitality_events',
+  financial_services: 'financial_services',
+  nonprofit: 'nonprofit',
+  other: 'other',
+} as const;
+
+export type OnboardingAssistUseCase = typeof OnboardingAssistUseCase[keyof typeof OnboardingAssistUseCase];
+
+
+export const OnboardingAssistUseCase = {
+  account_notifications: 'account_notifications',
+  customer_care: 'customer_care',
+  marketing: 'marketing',
+  mixed: 'mixed',
+} as const;
+
+export interface OnboardingAssist {
+  businessType?: OnboardingAssistBusinessType;
+  useCase?: OnboardingAssistUseCase;
+  /** @maxLength 500 */
+  rationale?: string;
+  /** @maxLength 1200 */
+  optInDescription?: string;
+  /** @maxLength 1200 */
+  consentCopy?: string;
 }
 
 export interface CampaignAssistantOutput {
