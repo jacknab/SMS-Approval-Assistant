@@ -1,0 +1,1 @@
+- [Development database bootstrap](development-database-bootstrap.md) — a fresh dev database may be empty even while the API health endpoint reports OK.
