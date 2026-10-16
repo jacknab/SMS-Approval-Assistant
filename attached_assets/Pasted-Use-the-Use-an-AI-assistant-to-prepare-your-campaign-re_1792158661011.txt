@@ -1,0 +1,15 @@
+Use the Use an AI assistant to prepare your campaign registration guide provided in the Twilio Console to draft and format your US A2P 10DLC messaging campaign details. [[1](https://help.twilio.com/articles/55998855215003-Use-an-AI-assistant-to-prepare-your-campaign-registration)] (https://help.twilio.com/articles/55998855215003-Use-an-AI-assistant-to-prepare-your-campaign-registration)
+
+What the Twilio SMS Campaign Assistant Does
+
+• Prepares Application Data: Helps structure your brand registration, campaign use case, sample messages, and opt-in disclosure details before submission to the carriers via The Campaign Registry (TCR). [1] (https://www.reddit.com/r/seasaltai/comments/1g0q2b8/how_to_get_your_twilio_sms_campaign_approved_what/), [2] (https://help.twilio.com/articles/55998855215003-Use-an-AI-assistant-to-prepare-your-campaign-registration)
+• Identifies Discrepancies: Assists in checking that your described messaging program matches your actual web form, privacy policy, and terms and conditions. [1] (https://flexxable.com/twilio-a2p-10dlc-approved-fast/), [2] (https://help.twilio.com/articles/55998855215003-Use-an-AI-assistant-to-prepare-your-campaign-registration)
+• Limitations: The assistant cannot directly view your live Twilio account, website, or hidden opt-in pages; you must verify that your public-facing links and compliance pages are active and accessible. [1] (https://help.twilio.com/articles/55998855215003-Use-an-AI-assistant-to-prepare-your-campaign-registration)
+
+Key Requirements for Fast Approval
+
+• Brand Registration: You must have a verified EIN from the IRS and complete the initial brand registration in the Twilio Console. [1] (https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/quickstart), [2] (https://www.reddit.com/r/seasaltai/comments/1g0q2b8/how_to_get_your_twilio_sms_campaign_approved_what/)
+• Consistent Opt-in Proof: Your website or contact form must feature a clear, standalone opt-in checkbox or text-based keyword description that explicitly mentions SMS marketing. [1] (https://www.twilio.com/en-us/blog/insights/best-practices/improving-your-chances-of-a2p10dlc-registration-approval), [2] (https://flexxable.com/twilio-a2p-10dlc-approved-fast/)
+• Sample Messages: Provide at least two realistic sample messages that accurately reflect your stated use case (such as customer notifications or service follow-ups). [1] (https://www.reddit.com/r/seasaltai/comments/1g0q2b8/how_to_get_your_twilio_sms_campaign_approved_what/), [2] (https://flexxable.com/twilio-a2p-10dlc-approved-fast/)
+• Status Tracking: Once submitted, carrier review typically takes several days, after which your campaign status updates to VERIFIED in the Twilio Console. [1] (https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/quickstart)
+Would you like help drafting your sample messages or reviewing your opt-in disclosure text to ensure it meets carrier compliance rules?
