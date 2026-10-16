@@ -1,1 +1,2 @@
 - [Development database bootstrap](development-database-bootstrap.md) — a fresh dev database may be empty even while the API health endpoint reports OK.
+- [Clerk setup for imported apps](clerk-import-setup.md) — Clerk code can be present while managed Clerk credentials remain unprovisioned.
