@@ -18,6 +18,8 @@ tags:
     description: Mock registration workflow and status tracking
   - name: public-compliance
     description: Publicly accessible generated compliance pages
+  - name: campaign-assistant
+    description: AI-assisted campaign preparation and consistency checks
 paths:
   /healthz:
     get:
@@ -136,6 +138,38 @@ paths:
                 $ref: "#/components/schemas/ReadinessReport"
         "404":
           description: Business not found
+  /businesses/{businessId}/assistant:
+    parameters:
+      - name: businessId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: prepareCampaignAssistant
+      tags: [campaign-assistant]
+      summary: Prepare or review SMS campaign registration details
+      description: Uses the authenticated user's saved business profile and provided context. It does not contact Twilio or inspect live pages.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignAssistantInput"
+      responses:
+        "200":
+          description: Assistant guidance and optional editable drafts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignAssistantOutput"
+        "400":
+          description: Invalid request
+        "404":
+          description: Business not found
+        "502":
+          description: Assistant could not produce a valid response
   /businesses/{businessId}/materials:
     parameters:
       - name: businessId
@@ -528,4 +562,76 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CampaignAssistantInput:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          type: string
+          enum: [prepare, review, answer]
+        question:
+          type: string
+          maxLength: 2000
+        history:
+          type: array
+          maxItems: 8
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role:
+                type: string
+                enum: [user, assistant]
+              content:
+                type: string
+                maxLength: 2000
+    CampaignAssistantIssue:
+      type: object
+      required: [severity, title, detail]
+      properties:
+        severity:
+          type: string
+          enum: [blocking, review]
+        title:
+          type: string
+          maxLength: 120
+        detail:
+          type: string
+          maxLength: 600
+    CampaignAssistantDrafts:
+      type: object
+      required: [campaignDescription, sampleMessages, optInDescription, consentCopy]
+      properties:
+        campaignDescription:
+          type: string
+          maxLength: 1200
+        sampleMessages:
+          type: array
+          minItems: 2
+          maxItems: 5
+          items:
+            type: string
+            maxLength: 500
+        optInDescription:
+          type: string
+          maxLength: 1200
+        consentCopy:
+          type: string
+          maxLength: 1200
+    CampaignAssistantOutput:
+      type: object
+      required: [answer, issues, drafts]
+      properties:
+        answer:
+          type: string
+          maxLength: 5000
+        issues:
+          type: array
+          maxItems: 12
+          items:
+            $ref: "#/components/schemas/CampaignAssistantIssue"
+        drafts:
+          oneOf:
+            - $ref: "#/components/schemas/CampaignAssistantDrafts"
+            - type: "null"
 

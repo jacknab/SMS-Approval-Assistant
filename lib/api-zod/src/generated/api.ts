@@ -390,6 +390,68 @@ export const GetReadinessResponse = zod.object({
 
 
 /**
+ * Uses the authenticated user's saved business profile and provided context. It does not contact Twilio or inspect live pages.
+ * @summary Prepare or review SMS campaign registration details
+ */
+export const PrepareCampaignAssistantParams = zod.object({
+  "businessId": zod.coerce.string().uuid()
+})
+
+export const prepareCampaignAssistantBodyQuestionMax = 2000;
+
+export const prepareCampaignAssistantBodyHistoryItemContentMax = 2000;
+
+export const prepareCampaignAssistantBodyHistoryMax = 8;
+
+
+
+export const PrepareCampaignAssistantBody = zod.object({
+  "mode": zod.enum(['prepare', 'review', 'answer']),
+  "question": zod.string().max(prepareCampaignAssistantBodyQuestionMax).optional(),
+  "history": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string().max(prepareCampaignAssistantBodyHistoryItemContentMax)
+})).max(prepareCampaignAssistantBodyHistoryMax).optional()
+})
+
+export const prepareCampaignAssistantResponseAnswerMax = 5000;
+
+export const prepareCampaignAssistantResponseIssuesItemTitleMax = 120;
+
+export const prepareCampaignAssistantResponseIssuesItemDetailMax = 600;
+
+export const prepareCampaignAssistantResponseIssuesMax = 12;
+
+export const prepareCampaignAssistantResponseDraftsOneCampaignDescriptionMax = 1200;
+
+export const prepareCampaignAssistantResponseDraftsOneSampleMessagesItemMax = 500;
+
+export const prepareCampaignAssistantResponseDraftsOneSampleMessagesMin = 2;
+export const prepareCampaignAssistantResponseDraftsOneSampleMessagesMax = 5;
+
+export const prepareCampaignAssistantResponseDraftsOneOptInDescriptionMax = 1200;
+
+export const prepareCampaignAssistantResponseDraftsOneConsentCopyMax = 1200;
+
+
+
+export const PrepareCampaignAssistantResponse = zod.object({
+  "answer": zod.string().max(prepareCampaignAssistantResponseAnswerMax),
+  "issues": zod.array(zod.object({
+  "severity": zod.enum(['blocking', 'review']),
+  "title": zod.string().max(prepareCampaignAssistantResponseIssuesItemTitleMax),
+  "detail": zod.string().max(prepareCampaignAssistantResponseIssuesItemDetailMax)
+})).max(prepareCampaignAssistantResponseIssuesMax),
+  "drafts": zod.union([zod.object({
+  "campaignDescription": zod.string().max(prepareCampaignAssistantResponseDraftsOneCampaignDescriptionMax),
+  "sampleMessages": zod.array(zod.string().max(prepareCampaignAssistantResponseDraftsOneSampleMessagesItemMax)).min(prepareCampaignAssistantResponseDraftsOneSampleMessagesMin).max(prepareCampaignAssistantResponseDraftsOneSampleMessagesMax),
+  "optInDescription": zod.string().max(prepareCampaignAssistantResponseDraftsOneOptInDescriptionMax),
+  "consentCopy": zod.string().max(prepareCampaignAssistantResponseDraftsOneConsentCopyMax)
+}),zod.null()])
+})
+
+
+/**
  * @summary Generate SMS policy and opt-in materials
  */
 export const GenerateMaterialsParams = zod.object({

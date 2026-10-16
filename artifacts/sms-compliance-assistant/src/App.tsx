@@ -23,6 +23,7 @@ import {
 } from '@workspace/api-client-react';
 import { Link, Redirect, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { CampaignAssistant } from '@/components/campaign-assistant';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -140,7 +141,7 @@ function HomePage() {
       <div className="page-enter relative z-10 max-w-2xl">
         <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[hsl(174_18%_78%)] bg-[hsl(174_30%_95%)] px-3 py-1.5 text-xs font-semibold tracking-wide text-primary"><ShieldCheck size={14} /> A calmer path to SMS registration</div>
         <h1 className="font-display max-w-xl text-[clamp(2.8rem,6vw,5.45rem)] font-extrabold leading-[.99] tracking-[-.065em] text-[hsl(174_28%_18%)]">Get your customer texts <span className="relative inline-block text-primary">ready to send.</span></h1>
-        <p className="mt-7 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">ClearSignal turns registration requirements into practical next steps, so your team can prepare an honest, complete SMS campaign with confidence.</p>
+         <p className="mt-7 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">Draft your campaign details in plain language, compare them against consent and public materials, and work through the next steps before you open Twilio.</p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Link href="/sign-up" data-testid="link-start-setup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-primary-foreground shadow-[0_10px_20px_hsl(174_35%_27%/.14)] transition hover:-translate-y-0.5">Start your setup <ArrowRight size={16} /></Link>
           <Link href="/sign-in" data-testid="link-existing-account" className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-bold text-foreground transition hover:bg-muted">I already have an account</Link>
@@ -444,6 +445,7 @@ function BusinessWorkspace() {
       <div><Eyebrow>Business workspace / {business.businessName}</Eyebrow><h1 className="font-display mt-3 text-3xl font-extrabold tracking-[-.05em] sm:text-[40px]" data-testid="text-business-title">{business.businessName}</h1><p className="mt-2 text-sm text-muted-foreground">{business.brandName} <span className="mx-1.5">·</span> {business.useCase.replaceAll('_', ' ')}</p></div>
       <Button variant="outline" data-testid="button-edit-business" onClick={() => setEditOpen(true)} className="gap-2 rounded-xl"><Pencil size={15} /> Edit profile</Button>
     </div>
+    <CampaignAssistant business={business} businessId={businessId} />
     <div className="mt-7 grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
       <section className="overflow-hidden rounded-2xl border border-card-border bg-card surface-shadow" data-testid="section-readiness">
         <div className="flex flex-col justify-between gap-5 bg-[hsl(174_29%_17%)] p-5 text-sidebar-foreground sm:flex-row sm:items-center sm:p-6">

@@ -23,6 +23,8 @@ import type {
   Business,
   BusinessInput,
   BusinessUpdate,
+  CampaignAssistantInput,
+  CampaignAssistantOutput,
   ComplianceMaterials,
   DashboardSummary,
   HealthStatus,
@@ -620,6 +622,96 @@ export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>
 
 
 
+
+export const getPrepareCampaignAssistantUrl = (businessId: string,) => {
+
+
+
+
+  return `/api/businesses/${businessId}/assistant`
+}
+
+/**
+ * Uses the authenticated user's saved business profile and provided context. It does not contact Twilio or inspect live pages.
+ * @summary Prepare or review SMS campaign registration details
+ */
+export const prepareCampaignAssistant = async (businessId: string,
+    campaignAssistantInput: CampaignAssistantInput, options?: Parameters<typeof customFetch>[1]): Promise<CampaignAssistantOutput> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CampaignAssistantOutput>(getPrepareCampaignAssistantUrl(businessId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(campaignAssistantInput)
+  }
+);}
+
+
+
+
+
+export const getPrepareCampaignAssistantMutationKey = () => ['prepareCampaignAssistant'] as const;
+
+export const getPrepareCampaignAssistantMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof prepareCampaignAssistant>>, TError,PrepareCampaignAssistantMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof prepareCampaignAssistant>>, TError,PrepareCampaignAssistantMutationVariables, TContext> => {
+
+const mutationKey = getPrepareCampaignAssistantMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof prepareCampaignAssistant>>, PrepareCampaignAssistantMutationVariables> = (props) => {
+          const {businessId,data} = props ?? {};
+
+          return  prepareCampaignAssistant(businessId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PrepareCampaignAssistantMutationResult = NonNullable<Awaited<ReturnType<typeof prepareCampaignAssistant>>>
+    export type PrepareCampaignAssistantMutationBody = BodyType<CampaignAssistantInput>
+    export type PrepareCampaignAssistantMutationError = ErrorType<void>
+    export type PrepareCampaignAssistantMutationVariables = {businessId: string;data: BodyType<CampaignAssistantInput>}
+
+    /**
+ * @summary Prepare or review SMS campaign registration details
+ */
+export const usePrepareCampaignAssistant = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof prepareCampaignAssistant>>, TError,PrepareCampaignAssistantMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof prepareCampaignAssistant>>,
+        TError,
+        PrepareCampaignAssistantMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPrepareCampaignAssistantMutationOptions(options));
+    }
 
 export const getGenerateMaterialsUrl = (businessId: string,) => {
 

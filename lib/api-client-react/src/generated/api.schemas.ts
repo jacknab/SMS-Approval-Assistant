@@ -290,3 +290,73 @@ export interface PublicCompliance {
   updatedAt: string;
 }
 
+export type CampaignAssistantInputMode = typeof CampaignAssistantInputMode[keyof typeof CampaignAssistantInputMode];
+
+
+export const CampaignAssistantInputMode = {
+  prepare: 'prepare',
+  review: 'review',
+  answer: 'answer',
+} as const;
+
+export type CampaignAssistantInputHistoryItemRole = typeof CampaignAssistantInputHistoryItemRole[keyof typeof CampaignAssistantInputHistoryItemRole];
+
+
+export const CampaignAssistantInputHistoryItemRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export type CampaignAssistantInputHistoryItem = {
+  role: CampaignAssistantInputHistoryItemRole;
+  /** @maxLength 2000 */
+  content: string;
+};
+
+export interface CampaignAssistantInput {
+  mode: CampaignAssistantInputMode;
+  /** @maxLength 2000 */
+  question?: string;
+  /** @maxItems 8 */
+  history?: CampaignAssistantInputHistoryItem[];
+}
+
+export type CampaignAssistantIssueSeverity = typeof CampaignAssistantIssueSeverity[keyof typeof CampaignAssistantIssueSeverity];
+
+
+export const CampaignAssistantIssueSeverity = {
+  blocking: 'blocking',
+  review: 'review',
+} as const;
+
+export interface CampaignAssistantIssue {
+  severity: CampaignAssistantIssueSeverity;
+  /** @maxLength 120 */
+  title: string;
+  /** @maxLength 600 */
+  detail: string;
+}
+
+export interface CampaignAssistantDrafts {
+  /** @maxLength 1200 */
+  campaignDescription: string;
+  /**
+     * @minItems 2
+     * @maxItems 5
+     * @items.maxLength 500
+     */
+  sampleMessages: string[];
+  /** @maxLength 1200 */
+  optInDescription: string;
+  /** @maxLength 1200 */
+  consentCopy: string;
+}
+
+export interface CampaignAssistantOutput {
+  /** @maxLength 5000 */
+  answer: string;
+  /** @maxItems 12 */
+  issues: CampaignAssistantIssue[];
+  drafts: CampaignAssistantDrafts | null;
+}
+

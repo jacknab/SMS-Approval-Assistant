@@ -9,7 +9,7 @@ A guided onboarding app that helps businesses prepare truthful SMS campaign regi
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string; `OPENAI_API_KEY` — server-side OpenAI API key for campaign assistant responses
 
 ## Stack
 
@@ -32,6 +32,7 @@ A guided onboarding app that helps businesses prepare truthful SMS campaign regi
 
 - Start with the managed-ISV onboarding path; customer-owned Twilio accounts are a later milestone.
 - Mock submissions only create local registration records. They never contact Twilio or imply approval.
+- Campaign assistant requests send saved campaign fields and any generated public policy text to OpenAI from the API server; never expose `OPENAI_API_KEY` to the browser.
 - Business records are scoped to the authenticated Clerk user. Public policy pages expose only the generated policy content.
 - Generated privacy and SMS terms are editable starting points and must be reviewed against the business's actual practices.
 
