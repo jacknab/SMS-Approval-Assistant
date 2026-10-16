@@ -24,6 +24,8 @@ import {
 import { Link, Redirect, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { CampaignAssistant } from '@/components/campaign-assistant';
+import { ApplicationPacket } from '@/components/application-packet';
+import { WebsiteOptInKit } from '@/components/website-opt-in-kit';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -446,6 +448,8 @@ function BusinessWorkspace() {
       <Button variant="outline" data-testid="button-edit-business" onClick={() => setEditOpen(true)} className="gap-2 rounded-xl"><Pencil size={15} /> Edit profile</Button>
     </div>
     <CampaignAssistant business={business} businessId={businessId} />
+    <ApplicationPacket business={business} report={report} />
+    <WebsiteOptInKit business={business} onEditProfile={() => setEditOpen(true)} />
     <div className="mt-7 grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
       <section className="overflow-hidden rounded-2xl border border-card-border bg-card surface-shadow" data-testid="section-readiness">
         <div className="flex flex-col justify-between gap-5 bg-[hsl(174_29%_17%)] p-5 text-sidebar-foreground sm:flex-row sm:items-center sm:p-6">

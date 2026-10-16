@@ -1,15 +1,16 @@
 # SMS Compliance Assistant
 
-A guided onboarding app that helps businesses prepare truthful SMS campaign registrations, publish consent materials, and check readiness before submitting to Twilio.
+A guided onboarding app that helps businesses prepare truthful SMS campaign registrations, publish consent materials, and check readiness before submitting to Twilio. The product goal is to help users catch preventable gaps and prepare complete, consistent details; never promise or imply first-pass approval.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/sms-compliance-assistant run dev` — run the web app
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string; `OPENAI_API_KEY` — server-side OpenAI API key for campaign assistant responses
+- Required setup: Replit-managed Clerk authentication and `DATABASE_URL` for PostgreSQL. `OPENAI_API_KEY` enables campaign assistant responses and is not needed for the rest of the app.
 
 ## Stack
 
@@ -39,6 +40,8 @@ A guided onboarding app that helps businesses prepare truthful SMS campaign regi
 ## Product
 
 - Guided business and campaign intake
+- User-reviewable campaign and sample-message drafts for the SMS registration
+- Copyable website opt-in HTML with an optional, unchecked SMS consent checkbox; businesses must connect their own form handler to capture consent
 - SMS consent and policy material generation with a public page
 - Readiness checks for campaign descriptions, sample messages, affirmative consent, and public disclosures
 - Dashboard and saved mock registration status
