@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Dashboard summaries and recent activity
+  - name: businesses
+    description: Business onboarding and compliance readiness
+  - name: registrations
+    description: Mock registration workflow and status tracking
+  - name: public-compliance
+    description: Publicly accessible generated compliance pages
 paths:
   /healthz:
     get:
@@ -24,6 +32,195 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary and recent activity
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /businesses:
+    get:
+      operationId: listBusinesses
+      tags: [businesses]
+      summary: List businesses owned by the current user
+      responses:
+        "200":
+          description: Businesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+    post:
+      operationId: createBusiness
+      tags: [businesses]
+      summary: Create a business profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessInput"
+      responses:
+        "201":
+          description: Created business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+  /businesses/{businessId}:
+    parameters:
+      - name: businessId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getBusiness
+      tags: [businesses]
+      summary: Get a business profile
+      responses:
+        "200":
+          description: Business profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "404":
+          description: Business not found
+    patch:
+      operationId: updateBusiness
+      tags: [businesses]
+      summary: Update a business profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessUpdate"
+      responses:
+        "200":
+          description: Updated business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "404":
+          description: Business not found
+  /businesses/{businessId}/readiness:
+    parameters:
+      - name: businessId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getReadiness
+      tags: [businesses]
+      summary: Check readiness for a compliant SMS registration
+      responses:
+        "200":
+          description: Readiness report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessReport"
+        "404":
+          description: Business not found
+  /businesses/{businessId}/materials:
+    parameters:
+      - name: businessId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: generateMaterials
+      tags: [businesses]
+      summary: Generate SMS policy and opt-in materials
+      responses:
+        "200":
+          description: Generated public compliance materials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceMaterials"
+        "404":
+          description: Business not found
+  /businesses/{businessId}/registrations:
+    parameters:
+      - name: businessId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: listRegistrations
+      tags: [registrations]
+      summary: List registration attempts for a business
+      responses:
+        "200":
+          description: Registration attempts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Registration"
+  /businesses/{businessId}/mock-submissions:
+    parameters:
+      - name: businessId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: createMockSubmission
+      tags: [registrations]
+      summary: Save a mock registration submission without contacting Twilio
+      responses:
+        "201":
+          description: Mock registration saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          description: Business is not ready to submit
+        "404":
+          description: Business not found
+  /public/compliance/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPublicCompliance
+      tags: [public-compliance]
+      summary: Retrieve a published compliance page
+      responses:
+        "200":
+          description: Public policy content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCompliance"
+        "404":
+          description: Published compliance page not found
 components:
   schemas:
     HealthStatus:
@@ -33,4 +230,302 @@ components:
           type: string
       required:
         - status
+    BusinessInput:
+      type: object
+      required:
+        - businessName
+        - legalName
+        - brandName
+        - websiteUrl
+        - entityType
+        - contactEmail
+        - streetAddress
+        - city
+        - region
+        - postalCode
+        - country
+        - useCase
+        - campaignDescription
+        - messageFrequency
+        - sampleMessages
+        - optInMethod
+        - optInDescription
+        - consentCheckboxPresent
+      properties:
+        businessName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        legalName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        brandName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        websiteUrl:
+          type: string
+          format: uri
+        entityType:
+          type: string
+          enum: [llc, corporation, sole_proprietor, nonprofit, public_company, other]
+        contactEmail:
+          type: string
+          format: email
+        streetAddress:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        region:
+          type: string
+          minLength: 1
+        postalCode:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          enum: [US]
+        useCase:
+          type: string
+          enum: [account_notifications, customer_care, marketing, mixed]
+        campaignDescription:
+          type: string
+          maxLength: 1200
+        messageFrequency:
+          type: string
+          maxLength: 300
+        sampleMessages:
+          type: array
+          items:
+            type: string
+            maxLength: 500
+          maxItems: 5
+        optInMethod:
+          type: string
+          enum: [website_form, keyword, point_of_sale, paper_form, verbal, other]
+        optInDescription:
+          type: string
+          maxLength: 1200
+        consentCheckboxPresent:
+          type: boolean
+        consentCopy:
+          type: ["string", "null"]
+          maxLength: 1200
+    BusinessUpdate:
+      type: object
+      properties:
+        businessName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        legalName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        brandName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        websiteUrl:
+          type: string
+          format: uri
+        entityType:
+          type: string
+          enum: [llc, corporation, sole_proprietor, nonprofit, public_company, other]
+        contactEmail:
+          type: string
+          format: email
+        streetAddress:
+          type: string
+        city:
+          type: string
+        region:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+          enum: [US]
+        useCase:
+          type: string
+          enum: [account_notifications, customer_care, marketing, mixed]
+        campaignDescription:
+          type: string
+          maxLength: 1200
+        messageFrequency:
+          type: string
+          maxLength: 300
+        sampleMessages:
+          type: array
+          items:
+            type: string
+            maxLength: 500
+          maxItems: 5
+        optInMethod:
+          type: string
+          enum: [website_form, keyword, point_of_sale, paper_form, verbal, other]
+        optInDescription:
+          type: string
+          maxLength: 1200
+        consentCheckboxPresent:
+          type: boolean
+        consentCopy:
+          type: ["string", "null"]
+          maxLength: 1200
+    Business:
+      allOf:
+        - $ref: "#/components/schemas/BusinessInput"
+        - type: object
+          required: [id, publicSlug, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            publicSlug:
+              type: ["string", "null"]
+            privacyPolicyText:
+              type: ["string", "null"]
+            smsTermsText:
+              type: ["string", "null"]
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    ReadinessCheck:
+      type: object
+      required: [id, title, detail, state]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        state:
+          type: string
+          enum: [ready, needs_attention, blocking]
+    ReadinessReport:
+      type: object
+      required: [businessId, score, readyCount, attentionCount, blockingCount, canSubmit, checks]
+      properties:
+        businessId:
+          type: string
+          format: uuid
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        readyCount:
+          type: integer
+        attentionCount:
+          type: integer
+        blockingCount:
+          type: integer
+        canSubmit:
+          type: boolean
+        checks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadinessCheck"
+    ComplianceMaterials:
+      type: object
+      required: [businessId, publicSlug, publicUrl, privacyPolicyText, smsTermsText, consentCopy]
+      properties:
+        businessId:
+          type: string
+          format: uuid
+        publicSlug:
+          type: string
+        publicUrl:
+          type: string
+        privacyPolicyText:
+          type: string
+        smsTermsText:
+          type: string
+        consentCopy:
+          type: string
+    Registration:
+      type: object
+      required: [id, businessId, status, mode, isMock, message, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        businessId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [draft, submitted, approved, action_required]
+        mode:
+          type: string
+          enum: [mock]
+        isMock:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Activity:
+      type: object
+      required: [id, businessId, businessName, action, detail, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        businessId:
+          type: string
+          format: uuid
+        businessName:
+          type: string
+        action:
+          type: string
+        detail:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    DashboardSummary:
+      type: object
+      required: [businessCount, readyCount, submittedCount, needsWorkCount, recentActivity]
+      properties:
+        businessCount:
+          type: integer
+        readyCount:
+          type: integer
+        submittedCount:
+          type: integer
+        needsWorkCount:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+    PublicCompliance:
+      type: object
+      required: [businessName, brandName, contactEmail, privacyPolicyText, smsTermsText, updatedAt]
+      properties:
+        businessName:
+          type: string
+        brandName:
+          type: string
+        contactEmail:
+          type: string
+        privacyPolicyText:
+          type: string
+        smsTermsText:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
 

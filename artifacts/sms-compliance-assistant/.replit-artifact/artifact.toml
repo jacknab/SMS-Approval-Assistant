@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "SMS Compliance Assistant"
+description = "A guided onboarding web app that helps SaaS teams and small businesses prepare accurate SMS messaging registrations, check consent and compliance details, and track a safe mock submission before connecting to Twilio."
+version = "1.0.0"
+id = "artifacts/sms-compliance-assistant"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26026
+
+[services.development]
+run = "pnpm --filter @workspace/sms-compliance-assistant run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sms-compliance-assistant", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/sms-compliance-assistant/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26026"
+BASE_PATH = "/"

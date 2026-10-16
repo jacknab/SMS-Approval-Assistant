@@ -1,0 +1,140 @@
+## 1. Account architecture
+
+Toby, I'd build this as one application with two registration paths, not two separate products.
+
+The biggest architectural rule is that a business's registration must always be associated with the correct Twilio account. Twilio recommends a subaccount per customer, with each customer's Messaging Service isolated, for the managed ISV model.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.twilio.com\&sz=32)
+
+Twilio
+
+
+
+Your SMS approval website
+
+One login · One wizard · One status dashboard
+
+Managed registration
+
+Your Twilio ISV account
+
+Customer-specific subaccount
+
+Brand + campaign registration
+
+Customer-owned
+
+Customer connects Twilio
+
+Authorize and verify account access
+
+Register within their account
+
+Shared registration tracker
+
+Draft → Submitted → Approved or action required
+
+Important distinction: customer-owned registration should use the customer's own credentials or supported authorization mechanism. Don't assume you can access their account just because they give you an Account SID.
+
+## 2. API integration
+
+I'd use Twilio's official Compliance Embeddable wherever your account is eligible. It provides a white-label registration UI and lets you prefill information, while Twilio handles the registration form workflow. It requires prior access approval and an approved ISV Trust Hub profile.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.twilio.com\&sz=32)
+
+Twilio
+
+
+
+The core flow is:
+
+1. Collect business details and campaign information.
+2. Validate the data and identify missing requirements.
+3. Create or select the correct Twilio account context.
+4. Create a Messaging Service and initialize brand registration.
+5. After brand approval, initialize campaign registration.
+6. Save the registration identifiers and track status and rejection reasons.
+
+The campaign must be associated with an approved brand. Save the Messaging Service SID so you can resume or resubmit a campaign when necessary.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.twilio.com\&sz=32)
+
+Twilio
+
++1
+
+
+
+## 3. Security and data structure
+
+Keep the architecture simple, but treat Twilio credentials and customer business data as sensitive.
+
+| Component          | Recommendation                                                           |
+| ------------------ | ------------------------------------------------------------------------ |
+| Frontend           | React                                                                    |
+| Backend            | Node.js + Express                                                        |
+| Database           | PostgreSQL                                                               |
+| Background jobs    | Redis-backed queue, if needed                                            |
+| Twilio integration | Server-side REST API client                                              |
+| Hosting            | Your existing VPS can work for an MVP, with proper isolation and backups |
+
+I'd use these core records:
+
+- `users` — login and account ownership.
+- `businesses` — legal business details and website.
+- `twilio_connections` — connection type, Twilio Account SID, encrypted credentials where required.
+- `registrations` — brand, campaign, status, rejection reason, and Twilio resource IDs.
+- `consent_evidence` — opt-in wording, source, and supporting evidence.
+- `audit_logs` — who submitted or changed a registration and when.
+
+### Security rules I'd insist on
+
+- Never expose Twilio secrets in browser code, URLs, or logs.
+- Encrypt stored credentials using a managed key or a separate encryption key, not merely database encryption.
+- Ensure every business query is scoped to the authenticated customer's tenant.
+- Verify Twilio webhook signatures before trusting status updates.
+- Require explicit customer approval before submitting registrations.
+- Provide a disconnect option and securely delete stored credentials when no longer needed.
+- Never promise approval or encourage fabricated business details, consent, or sample messages.
+
+## 4. The first development milestone
+
+My recommendation is not to build both connection methods at once. First prove that you can make the entire customer experience dramatically easier using the managed ISV route.
+
+## Milestone 1 — Working registration MVP
+
+Goal: one real business can complete the guided workflow and reach a genuine Twilio submission.
+
+Development checklist
+
+### 0 of 6
+
+Create the account and business onboarding wizard
+
+Build the A2P campaign and consent readiness checker
+
+Set up and verify the Twilio ISV account prerequisites
+
+Connect the backend to Twilio's registration API
+
+Save brand and campaign IDs and display real status
+
+Test with a mock registration before live submission
+
+Definition of done
+
+A test business can enter its information, correct validation errors, complete a mock registration, and see the saved registration state without exposing credentials.
+
+After that works, add customer-owned Twilio connections as a second milestone. That keeps the first release manageable while still allowing the product to support both account models later.
+
+One dependency to tackle early: confirm your ISV eligibility and request access to Compliance Embeddable before investing heavily in a custom registration interface. Twilio's documentation explains both the prerequisites and mock-registration workflow.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.twilio.com\&sz=32)
+
+Twilio
+
++1
+
+
+
+My opinion: the value isn't simply submitting a form to Twilio. It's eliminating confusion, catching preventable mistakes, and giving customers one clear place to understand what's happening. That's the product I'd build first.

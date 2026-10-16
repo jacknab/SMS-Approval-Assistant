@@ -1,6 +1,6 @@
-# [Project name]
+# SMS Compliance Assistant
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A guided onboarding app that helps businesses prepare truthful SMS campaign registrations, publish consent materials, and check readiness before submitting to Twilio.
 
 ## Run & Operate
 
@@ -22,23 +22,35 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/sms-compliance-assistant` — React web app and customer workflows
+- `artifacts/api-server` — shared Express API, Clerk middleware, and business endpoints
+- `lib/api-spec/openapi.yaml` — API source of truth
+- `lib/db/src/schema` — Drizzle database schema
+- `lib/api-client-react/src/generated` and `lib/api-zod/src/generated` — generated from the OpenAPI contract
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Start with the managed-ISV onboarding path; customer-owned Twilio accounts are a later milestone.
+- Mock submissions only create local registration records. They never contact Twilio or imply approval.
+- Business records are scoped to the authenticated Clerk user. Public policy pages expose only the generated policy content.
+- Generated privacy and SMS terms are editable starting points and must be reviewed against the business's actual practices.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Guided business and campaign intake
+- SMS consent and policy material generation with a public page
+- Readiness checks for campaign descriptions, sample messages, affirmative consent, and public disclosures
+- Dashboard and saved mock registration status
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+-
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After editing `lib/api-spec/openapi.yaml`, run `pnpm --filter @workspace/api-spec run codegen`.
+- Keep the mock-vs-live distinction visible in all registration status UI; no live Twilio submission is implemented yet.
+- The public compliance page is intentionally unauthenticated and keyed by a random slug; all business and registration API routes require a signed-in user.
 
 ## Pointers
 
