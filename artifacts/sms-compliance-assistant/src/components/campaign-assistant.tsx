@@ -133,21 +133,6 @@ export function CampaignAssistant({ business, businessId }: { business: Business
   const applyDrafts = () => {
     if (!drafts || update.isPending) return;
     const data: BusinessUpdate = {
-      businessName: business.businessName,
-      legalName: business.legalName,
-      brandName: business.brandName,
-      websiteUrl: business.websiteUrl,
-      entityType: business.entityType,
-      businessType: business.businessType,
-      contactEmail: business.contactEmail,
-      streetAddress: business.streetAddress,
-      city: business.city,
-      region: business.region,
-      postalCode: business.postalCode,
-      country: business.country,
-      useCase: business.useCase,
-      optInMethod: business.optInMethod,
-      consentCheckboxPresent: business.consentCheckboxPresent,
       campaignDescription: drafts.campaignDescription,
       messageFrequency: drafts.messageFrequency,
       sampleMessages: drafts.sampleMessages,
@@ -163,7 +148,13 @@ export function CampaignAssistant({ business, businessId }: { business: Business
         setDraftsApplied(true);
         toast({ title: 'Draft wording applied', description: 'The four campaign fields were saved to this business profile.' });
       },
-      onError: () => toast({ title: 'Could not apply these drafts', description: 'Your profile was not changed. Please try again.', variant: 'destructive' }),
+      onError: error => toast({
+        title: 'Could not apply these drafts',
+        description: error instanceof Error
+          ? `Your profile was not changed. ${error.message}`
+          : 'Your profile was not changed. Please try again.',
+        variant: 'destructive',
+      }),
     });
   };
 
