@@ -9,6 +9,8 @@
 export interface CampaignAssistantDrafts {
   /** @maxLength 1200 */
   campaignDescription: string;
+  /** @maxLength 300 */
+  messageFrequency: string;
   /**
      * @minItems 2
      * @maxItems 5

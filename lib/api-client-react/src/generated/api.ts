@@ -25,6 +25,8 @@ import type {
   BusinessUpdate,
   CampaignAssistantInput,
   CampaignAssistantOutput,
+  CampaignDraft,
+  CampaignDraftInput,
   ComplianceMaterials,
   DashboardSummary,
   HealthStatus,
@@ -711,6 +713,95 @@ export const usePrepareCampaignAssistant = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getPrepareCampaignAssistantMutationOptions(options));
+    }
+
+export const getCreateCampaignDraftUrl = () => {
+
+
+
+
+  return `/api/campaign-drafts`
+}
+
+/**
+ * Uses the authenticated user's selected business type and message purpose to prepare editable campaign wording. It does not save the draft or contact Twilio.
+ * @summary Draft campaign wording from a business profile
+ */
+export const createCampaignDraft = async (campaignDraftInput: CampaignDraftInput, options?: Parameters<typeof customFetch>[1]): Promise<CampaignDraft> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CampaignDraft>(getCreateCampaignDraftUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(campaignDraftInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCampaignDraftMutationKey = () => ['createCampaignDraft'] as const;
+
+export const getCreateCampaignDraftMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampaignDraft>>, TError,CreateCampaignDraftMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCampaignDraft>>, TError,CreateCampaignDraftMutationVariables, TContext> => {
+
+const mutationKey = getCreateCampaignDraftMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCampaignDraft>>, CreateCampaignDraftMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCampaignDraft(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCampaignDraftMutationResult = NonNullable<Awaited<ReturnType<typeof createCampaignDraft>>>
+    export type CreateCampaignDraftMutationBody = BodyType<CampaignDraftInput>
+    export type CreateCampaignDraftMutationError = ErrorType<void>
+    export type CreateCampaignDraftMutationVariables = {data: BodyType<CampaignDraftInput>}
+
+    /**
+ * @summary Draft campaign wording from a business profile
+ */
+export const useCreateCampaignDraft = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampaignDraft>>, TError,CreateCampaignDraftMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCampaignDraft>>,
+        TError,
+        CreateCampaignDraftMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCampaignDraftMutationOptions(options));
     }
 
 export const getGenerateMaterialsUrl = (businessId: string,) => {

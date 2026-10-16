@@ -23,9 +23,10 @@ const modes: { id: AssistantMode; label: string; description: string; Icon: type
   { id: 'answer', label: 'Ask a question', description: 'Get a plain-language explanation of the registration process.', Icon: CircleHelp },
 ];
 
-type DraftKey = 'campaignDescription' | 'sampleMessages' | 'optInDescription' | 'consentCopy';
+type DraftKey = 'campaignDescription' | 'messageFrequency' | 'sampleMessages' | 'optInDescription' | 'consentCopy';
 const draftFields: { key: DraftKey; label: string; help: string; rows: number }[] = [
   { key: 'campaignDescription', label: 'Campaign description', help: 'What the messages are for and who receives them.', rows: 4 },
+  { key: 'messageFrequency', label: 'Message frequency', help: 'Confirm this matches your actual messaging schedule.', rows: 2 },
   { key: 'sampleMessages', label: 'Sample messages', help: 'One example per line. Check every detail before using.', rows: 5 },
   { key: 'optInDescription', label: 'Opt-in description', help: 'Where customers see the offer and how they choose to subscribe.', rows: 4 },
   { key: 'consentCopy', label: 'Consent copy', help: 'The disclosure shown before a customer opts in.', rows: 4 },
@@ -70,7 +71,7 @@ function DraftEditor({ drafts, onChange }: { drafts: CampaignAssistantDrafts; on
         <Textarea
           data-testid={`input-assistant-draft-${key}`}
           rows={rows}
-          maxLength={key === 'sampleMessages' ? 2500 : 1200}
+          maxLength={key === 'sampleMessages' ? 2500 : key === 'messageFrequency' ? 300 : 1200}
           value={value}
           onChange={event => onChange({
             ...drafts,
@@ -137,6 +138,7 @@ export function CampaignAssistant({ business, businessId }: { business: Business
       brandName: business.brandName,
       websiteUrl: business.websiteUrl,
       entityType: business.entityType,
+      businessType: business.businessType,
       contactEmail: business.contactEmail,
       streetAddress: business.streetAddress,
       city: business.city,
@@ -144,10 +146,10 @@ export function CampaignAssistant({ business, businessId }: { business: Business
       postalCode: business.postalCode,
       country: business.country,
       useCase: business.useCase,
-      messageFrequency: business.messageFrequency,
       optInMethod: business.optInMethod,
       consentCheckboxPresent: business.consentCheckboxPresent,
       campaignDescription: drafts.campaignDescription,
+      messageFrequency: drafts.messageFrequency,
       sampleMessages: drafts.sampleMessages,
       optInDescription: drafts.optInDescription,
       consentCopy: drafts.consentCopy,
@@ -180,7 +182,7 @@ export function CampaignAssistant({ business, businessId }: { business: Business
       </div>
       <div className="flex items-center gap-2 rounded-xl border border-[hsl(174_17%_37%)] bg-[hsl(174_24%_21%)] px-3 py-2.5 text-xs leading-5 text-[hsl(42_18%_83%)] lg:max-w-[255px]" data-testid="assistant-session-note">
         <MessageSquareText size={16} className="shrink-0 text-[hsl(38_71%_67%)]" />
-        <span>Chat history is temporary in this view; it is not saved to your business profile.</span>
+         <span>Chat history is temporary in this view; it is not saved to your business profile.</span>
       </div>
     </div>
 
@@ -231,9 +233,9 @@ export function CampaignAssistant({ business, businessId }: { business: Business
           {result && drafts && mode !== 'answer' && <section className="mt-4 rounded-2xl border border-[hsl(38_35%_79%)] bg-[hsl(42_38%_97%)] p-4 sm:p-5" data-testid="assistant-drafts">
             <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><div className="font-mono text-[10px] uppercase tracking-[.15em] text-[hsl(34_57%_43%)]">Editable suggestions</div><h3 className="mt-1 text-base font-bold">Nothing changes until you apply it.</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">Read each field closely and make it match your actual program.</p></div><span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-card px-2.5 py-1 text-[10px] font-bold text-muted-foreground"><FilePenLine size={12} /> Not saved yet</span></div>
             <DraftEditor drafts={drafts} onChange={next => { setDrafts(next); setDraftsApplied(false); }} />
-            {draftsApplied && <p className="mt-4 rounded-lg bg-[hsl(147_36%_94%)] px-3 py-2 text-xs font-semibold text-[hsl(157_32%_31%)]" data-testid="assistant-drafts-applied">These four fields were saved to your business profile. You can still edit and apply another revision.</p>}
+            {draftsApplied && <p className="mt-4 rounded-lg bg-[hsl(147_36%_94%)] px-3 py-2 text-xs font-semibold text-[hsl(157_32%_31%)]" data-testid="assistant-drafts-applied">These five fields were saved to your business profile. You can still edit and apply another revision.</p>}
             {update.isError && <p className="mt-3 text-xs font-semibold text-destructive" data-testid="assistant-apply-error">The save did not complete. Your profile is unchanged; you can try applying again.</p>}
-            <div className="mt-4 flex flex-col-reverse justify-between gap-3 border-t border-border pt-4 sm:flex-row sm:items-center"><p className="max-w-md text-[11px] leading-5 text-muted-foreground">Applying replaces only campaign description, sample messages, opt-in description, and consent copy.</p><Button type="button" data-testid="button-assistant-apply-drafts" onClick={applyDrafts} disabled={update.isPending || draftsApplied} className="gap-2 rounded-xl">{update.isPending ? <LoaderCircle size={15} className="animate-spin" /> : draftsApplied ? <Check size={15} /> : <FilePenLine size={15} />}{update.isPending ? 'Applying drafts…' : draftsApplied ? 'Applied to profile' : 'Apply drafts to profile'}</Button></div>
+            <div className="mt-4 flex flex-col-reverse justify-between gap-3 border-t border-border pt-4 sm:flex-row sm:items-center"><p className="max-w-md text-[11px] leading-5 text-muted-foreground">Applying replaces campaign description, message frequency, sample messages, opt-in description, and consent copy.</p><Button type="button" data-testid="button-assistant-apply-drafts" onClick={applyDrafts} disabled={update.isPending || draftsApplied} className="gap-2 rounded-xl">{update.isPending ? <LoaderCircle size={15} className="animate-spin" /> : draftsApplied ? <Check size={15} /> : <FilePenLine size={15} />}{update.isPending ? 'Applying drafts…' : draftsApplied ? 'Applied to profile' : 'Apply drafts to profile'}</Button></div>
           </section>}
         </div>
 

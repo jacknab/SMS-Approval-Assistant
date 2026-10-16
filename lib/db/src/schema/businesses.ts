@@ -15,6 +15,7 @@ export const businessesTable = pgTable("sms_businesses", {
   brandName: text("brand_name").notNull(),
   websiteUrl: text("website_url").notNull(),
   entityType: text("entity_type").notNull(),
+  businessType: text("business_type").notNull().default("other"),
   contactEmail: text("contact_email").notNull(),
   streetAddress: text("street_address").notNull(),
   city: text("city").notNull(),

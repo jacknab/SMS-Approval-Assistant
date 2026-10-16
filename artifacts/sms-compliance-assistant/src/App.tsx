@@ -14,12 +14,12 @@ import {
   X, XCircle,
 } from 'lucide-react';
 import {
-  useCreateBusiness, useCreateMockSubmission, useGenerateMaterials, useGetBusiness,
+  useCreateBusiness, useCreateCampaignDraft, useCreateMockSubmission, useGenerateMaterials, useGetBusiness,
   useGetDashboardSummary, useGetPublicCompliance, useGetReadiness, useListBusinesses,
   useListRegistrations, useUpdateBusiness, getGetBusinessQueryKey,
   getGetDashboardSummaryQueryKey, getGetPublicComplianceQueryKey, getGetReadinessQueryKey,
   getListBusinessesQueryKey, getListRegistrationsQueryKey,
-  type Business, type BusinessInput,
+  type Business, type BusinessInput, type CampaignDraftInput,
 } from '@workspace/api-client-react';
 import { Link, Redirect, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -90,6 +90,7 @@ const schema = z.object({
   brandName: z.string().min(1, 'Enter the brand that appears in messages.').max(200),
   websiteUrl: z.string().url('Enter a complete website URL, including https://'),
   entityType: z.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  businessType: z.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
   contactEmail: z.string().email('Enter a valid business email.'),
   streetAddress: z.string().min(1, 'Street address is required.'),
   city: z.string().min(1, 'City is required.'),
@@ -108,9 +109,9 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 const blankValues: FormValues = {
-  businessName: '', legalName: '', brandName: '', websiteUrl: 'https://', entityType: 'llc',
+  businessName: '', legalName: '', brandName: '', websiteUrl: 'https://', entityType: 'llc', businessType: 'other',
   contactEmail: '', streetAddress: '', city: '', region: '', postalCode: '', country: 'US',
-  useCase: 'customer_care', campaignDescription: '', messageFrequency: 'About 2 messages per month',
+  useCase: 'customer_care', campaignDescription: '', messageFrequency: '',
   sampleMessages: [''], optInMethod: 'website_form', optInDescription: '',
   consentCheckboxPresent: false, consentCopy: '',
 };
@@ -296,6 +297,7 @@ const fieldMeta: { key: keyof FormValues; label: string; placeholder?: string; k
   { key: 'brandName', label: 'Brand name in your messages', placeholder: 'The name recipients will recognize' },
   { key: 'websiteUrl', label: 'Business website', placeholder: 'https://yourbusiness.com' },
   { key: 'entityType', label: 'Business structure', kind: 'select', options: [['llc', 'LLC'], ['corporation', 'Corporation'], ['sole_proprietor', 'Sole proprietor'], ['nonprofit', 'Nonprofit'], ['public_company', 'Public company'], ['other', 'Other']] },
+  { key: 'businessType', label: 'Business type', kind: 'select', options: [['retail_ecommerce', 'Retail & ecommerce'], ['professional_services', 'Professional services'], ['home_field_services', 'Home & field services'], ['healthcare_wellness', 'Healthcare & wellness'], ['education', 'Education'], ['hospitality_events', 'Hospitality & events'], ['financial_services', 'Financial services'], ['nonprofit', 'Nonprofit organization'], ['other', 'Other']] },
   { key: 'contactEmail', label: 'Business contact email', placeholder: 'you@yourbusiness.com' },
   { key: 'streetAddress', label: 'Street address', placeholder: '123 Market Street' },
   { key: 'city', label: 'City', placeholder: 'Portland' },
@@ -303,26 +305,59 @@ const fieldMeta: { key: keyof FormValues; label: string; placeholder?: string; k
   { key: 'postalCode', label: 'ZIP code', placeholder: '97205' },
   { key: 'useCase', label: 'Primary message purpose', kind: 'select', options: [['account_notifications', 'Account notifications'], ['customer_care', 'Customer care'], ['marketing', 'Marketing'], ['mixed', 'A mix of purposes']] },
   { key: 'campaignDescription', label: 'What will these messages do?', kind: 'textarea', placeholder: 'Describe the messages customers will receive, and why.' },
-  { key: 'messageFrequency', label: 'Expected message frequency', placeholder: 'e.g. Up to 4 messages per month' },
+  { key: 'messageFrequency', label: 'Expected message frequency', placeholder: 'Use your actual estimate, e.g. up to 4 messages per month' },
   { key: 'sampleMessages', label: 'Sample messages', kind: 'textarea', placeholder: 'One sample per line. Include your brand name and a realistic example.' },
   { key: 'optInMethod', label: 'How do people give permission?', kind: 'select', options: [['website_form', 'Website form'], ['keyword', 'Text a keyword'], ['point_of_sale', 'At point of sale'], ['paper_form', 'Paper form'], ['verbal', 'Verbal'], ['other', 'Other']] },
   { key: 'optInDescription', label: 'Explain the opt-in experience', kind: 'textarea', placeholder: 'Where does the customer see the offer? What action do they take?' },
   { key: 'consentCopy', label: 'What does your consent language say?', kind: 'textarea', placeholder: 'Paste the consent language customers see before subscribing.' },
 ];
 
+const businessFieldKeys: (keyof FormValues)[] = [
+  'businessName', 'legalName', 'brandName', 'websiteUrl', 'entityType',
+  'businessType', 'contactEmail', 'streetAddress', 'city', 'region', 'postalCode',
+];
+const campaignFieldKeys: (keyof FormValues)[] = [
+  'useCase', 'campaignDescription', 'messageFrequency', 'sampleMessages',
+];
+
+function BusinessFieldControl({ field, form }: {
+  field: typeof fieldMeta[number];
+  form: ReturnType<typeof useForm<FormValues>>;
+}) {
+  if (field.key === 'sampleMessages') {
+    const samples = form.watch('sampleMessages');
+    return <Textarea
+      data-testid="input-sample-messages"
+      placeholder={field.placeholder}
+      rows={5}
+      value={samples.filter(Boolean).join('\n')}
+      onChange={event => form.setValue('sampleMessages', event.target.value.split('\n').map(line => line.trim()).filter(Boolean), { shouldDirty: true, shouldValidate: true })}
+    />;
+  }
+  if (field.kind === 'select') {
+    return <select
+      data-testid={`input-${field.key}`}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+      {...form.register(field.key as keyof FormValues)}
+    >{field.options?.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>;
+  }
+  if (field.kind === 'textarea') {
+    return <Textarea data-testid={`input-${field.key}`} placeholder={field.placeholder} rows={field.key === 'campaignDescription' ? 3 : 4} {...form.register(field.key as keyof FormValues)} />;
+  }
+  return <Input
+    data-testid={`input-${field.key}`}
+    placeholder={field.placeholder}
+    type={field.key === 'contactEmail' ? 'email' : field.key === 'websiteUrl' ? 'url' : 'text'}
+    {...form.register(field.key as keyof FormValues)}
+  />;
+}
+
 function BusinessFields({ form, includeConsent = true }: { form: ReturnType<typeof useForm<FormValues>>; includeConsent?: boolean }) {
-  const [samples, setSamples] = useState(form.getValues('sampleMessages').filter(Boolean).join('\n'));
   const fields = fieldMeta.filter(field => includeConsent || field.key !== 'consentCopy');
-  const renderControl = (field: typeof fieldMeta[number]) => {
-    if (field.key === 'sampleMessages') return <Textarea data-testid="input-sample-messages" placeholder={field.placeholder} rows={4} value={samples} onChange={event => { setSamples(event.target.value); form.setValue('sampleMessages', event.target.value.split('\n').map(s => s.trim()).filter(Boolean), { shouldValidate: true }); }} />;
-    if (field.kind === 'select') return <select data-testid={`input-${field.key}`} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring" {...form.register(field.key as keyof FormValues)}>{field.options?.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>;
-    if (field.kind === 'textarea') return <Textarea data-testid={`input-${field.key}`} placeholder={field.placeholder} rows={field.key === 'campaignDescription' ? 3 : 4} {...form.register(field.key as keyof FormValues)} />;
-    return <Input data-testid={`input-${field.key}`} placeholder={field.placeholder} type={field.key === 'contactEmail' ? 'email' : field.key === 'websiteUrl' ? 'url' : 'text'} {...form.register(field.key as keyof FormValues)} />;
-  };
   const inputFields = fields.filter(field => field.key !== 'consentCopy');
   return <div className="space-y-7">
     <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
-      {inputFields.map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem className={['campaignDescription', 'sampleMessages', 'optInDescription'].includes(field.key) ? 'sm:col-span-2' : ''}><FormLabel className="text-[13px] font-semibold text-foreground">{field.label}</FormLabel><FormControl>{renderControl(field)}</FormControl><FormMessage /></FormItem>} />)}
+      {inputFields.map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem className={['campaignDescription', 'sampleMessages', 'optInDescription'].includes(field.key) ? 'sm:col-span-2' : ''}><FormLabel className="text-[13px] font-semibold text-foreground">{field.label}</FormLabel><FormControl><BusinessFieldControl field={field} form={form} /></FormControl><FormMessage /></FormItem>} />)}
     </div>
     <FormField control={form.control} name="consentCheckboxPresent" render={({ field }) => <FormItem className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-4"><FormControl><Checkbox data-testid="input-consent-checkbox-present" checked={field.value} onCheckedChange={field.onChange} className="mt-0.5" /></FormControl><div><FormLabel className="text-sm font-semibold">My web form has a separate, unchecked SMS consent checkbox.</FormLabel><FormDescription className="mt-1 text-xs leading-5">Only mark this if the checkbox is optional and is not bundled with other terms.</FormDescription><FormMessage /></div></FormItem>} />
     {includeConsent && <FormField control={form.control} name="consentCopy" render={({ field }) => <FormItem><FormLabel className="text-[13px] font-semibold">What does your consent language say?</FormLabel><FormControl><Textarea data-testid="input-consent-copy" rows={4} placeholder="Paste the consent language customers see before subscribing." value={field.value ?? ''} onChange={field.onChange} /></FormControl><FormDescription>Include program name, frequency, message/data rates, STOP/HELP instructions, and links to your terms and privacy policy where relevant.</FormDescription><FormMessage /></FormItem>} />}
@@ -332,7 +367,7 @@ function BusinessFields({ form, includeConsent = true }: { form: ReturnType<type
 function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { initial?: Business; onSubmit: (values: FormValues) => void; submitting: boolean; submitLabel: string; cancel?: () => void }) {
   const initialValues: FormValues = initial ? {
     businessName: initial.businessName, legalName: initial.legalName, brandName: initial.brandName,
-    websiteUrl: initial.websiteUrl, entityType: initial.entityType, contactEmail: initial.contactEmail,
+    websiteUrl: initial.websiteUrl, entityType: initial.entityType, businessType: initial.businessType, contactEmail: initial.contactEmail,
     streetAddress: initial.streetAddress, city: initial.city, region: initial.region, postalCode: initial.postalCode,
     country: initial.country, useCase: initial.useCase, campaignDescription: initial.campaignDescription,
     messageFrequency: initial.messageFrequency, sampleMessages: initial.sampleMessages,
@@ -341,10 +376,27 @@ function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { 
   } : blankValues;
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: initialValues, mode: 'onTouched' });
   const [step, setStep] = useState(1);
+  const campaignDraft = useCreateCampaignDraft();
+  const draftCampaign = () => {
+    const values = form.getValues();
+    const data: CampaignDraftInput = {
+      businessName: values.businessName,
+      brandName: values.brandName,
+      websiteUrl: values.websiteUrl,
+      entityType: values.entityType,
+      businessType: values.businessType,
+      useCase: values.useCase,
+    };
+    campaignDraft.mutate({ data }, { onSuccess: drafts => {
+      form.setValue('campaignDescription', drafts.campaignDescription, { shouldDirty: true, shouldValidate: true });
+      form.setValue('messageFrequency', drafts.messageFrequency, { shouldDirty: true, shouldValidate: true });
+      form.setValue('sampleMessages', drafts.sampleMessages, { shouldDirty: true, shouldValidate: true });
+    } });
+  };
   const next = async () => {
     const keys: (keyof FormValues)[][] = [
-      ['businessName', 'legalName', 'brandName', 'websiteUrl', 'entityType', 'contactEmail', 'streetAddress', 'city', 'region', 'postalCode'],
-      ['useCase', 'campaignDescription', 'messageFrequency', 'sampleMessages'],
+      businessFieldKeys,
+      campaignFieldKeys,
       ['optInMethod', 'optInDescription', 'consentCheckboxPresent', 'consentCopy'],
     ];
     if (await form.trigger(keys[step - 1])) setStep(step + 1);
@@ -353,13 +405,24 @@ function BusinessForm({ initial, onSubmit, submitting, submitLabel, cancel }: { 
     <div className="flex items-center gap-2" data-testid="onboarding-progress">{['Business', 'Campaign', 'Consent'].map((label, i) => <div key={label} className="flex flex-1 items-center gap-2"><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold ${step > i + 1 ? 'bg-[hsl(147_34%_88%)] text-[hsl(157_32%_31%)]' : step === i + 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{step > i + 1 ? <Check size={14} /> : i + 1}</span><span className={`hidden text-xs font-semibold sm:inline ${step === i + 1 ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>{i < 2 && <span className="h-px flex-1 bg-border" />}</div>)}</div>
     <div className="rounded-xl bg-muted/70 p-4"><h3 className="text-sm font-bold">{step === 1 ? 'Tell us about the business' : step === 2 ? 'Describe the campaign' : 'Make consent easy to understand'}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{step === 1 ? 'Use the details that match your real business records.' : step === 2 ? 'Be specific about message purpose, volume, and examples.' : 'Clear opt-in and opt-out practices are central to customer trust.'}</p></div>
     {step === 1 && <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
-      {fieldMeta.slice(0, 10).map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem><FormLabel className="text-[13px] font-semibold">{field.label}</FormLabel><FormControl>{field.kind === 'select' ? <select data-testid={`input-${field.key}`} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...form.register(field.key as keyof FormValues)}>{field.options?.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select> : <Input data-testid={`input-${field.key}`} placeholder={field.placeholder} type={field.key === 'websiteUrl' ? 'url' : field.key === 'contactEmail' ? 'email' : 'text'} {...form.register(field.key as keyof FormValues)} />}</FormControl><FormMessage /></FormItem>} />)}
+       {fieldMeta.filter(field => businessFieldKeys.includes(field.key)).map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem><FormLabel className="text-[13px] font-semibold">{field.label}</FormLabel><FormControl><BusinessFieldControl field={field} form={form} /></FormControl><FormMessage /></FormItem>} />)}
     </div>}
-    {step === 2 && <div className="grid gap-5 sm:grid-cols-2">
-      {fieldMeta.slice(10, 14).map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem className={field.kind === 'textarea' ? 'sm:col-span-2' : ''}><FormLabel className="text-[13px] font-semibold">{field.label}</FormLabel><FormControl>{field.key === 'sampleMessages' ? <Textarea data-testid="input-sample-messages" rows={5} placeholder={field.placeholder} defaultValue={form.getValues('sampleMessages').join('\n')} onChange={e => form.setValue('sampleMessages', e.target.value.split('\n').map(v=>v.trim()).filter(Boolean), { shouldValidate: true })} /> : field.kind === 'textarea' ? <Textarea data-testid={`input-${field.key}`} rows={4} placeholder={field.placeholder} {...form.register(field.key as keyof FormValues)} /> : <Input data-testid={`input-${field.key}`} placeholder={field.placeholder} {...form.register(field.key as keyof FormValues)} />}</FormControl><FormMessage /></FormItem>} />)}
+     {step === 2 && <div className="space-y-5">
+       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-4">
+         <div><p className="text-sm font-semibold">Need a starting point?</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Drafts use your business name, business type, and selected message purpose. Review and edit every field before saving.</p></div>
+         <Button type="button" data-testid="button-draft-campaign" onClick={draftCampaign} disabled={campaignDraft.isPending} className="shrink-0 gap-2 rounded-xl">
+           {campaignDraft.isPending ? <LoaderCircle size={15} className="animate-spin" /> : <Sparkles size={15} />}
+           {campaignDraft.isPending ? 'Preparing drafts…' : 'Draft with AI'}
+         </Button>
+       </div>
+       {campaignDraft.isError && <p role="alert" className="text-xs font-semibold text-destructive" data-testid="campaign-draft-error">The campaign draft could not be prepared. Your entries are unchanged; check your connection or try again.</p>}
+       {campaignDraft.isSuccess && <p role="status" className="text-xs font-semibold text-[hsl(157_32%_31%)]" data-testid="campaign-draft-success">Drafts added to the editable fields below. Confirm the frequency and examples match your actual program.</p>}
+       <div className="grid gap-5 sm:grid-cols-2">
+       {fieldMeta.filter(field => campaignFieldKeys.includes(field.key)).map(field => <FormField key={field.key} control={form.control} name={field.key as keyof FormValues} render={() => <FormItem className={['campaignDescription', 'sampleMessages'].includes(field.key) ? 'sm:col-span-2' : ''}><FormLabel className="text-[13px] font-semibold">{field.label}</FormLabel><FormControl><BusinessFieldControl field={field} form={form} /></FormControl><FormMessage /></FormItem>} />)}
+       </div>
     </div>}
     {step === 3 && <div className="space-y-5">
-      <FormField control={form.control} name="optInMethod" render={({ field }) => <FormItem><FormLabel className="text-[13px] font-semibold">How do people give permission?</FormLabel><FormControl><select data-testid="input-optInMethod" className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...field}>{fieldMeta[14].options?.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></FormControl><FormMessage /></FormItem>} />
+       <FormField control={form.control} name="optInMethod" render={() => <FormItem><FormLabel className="text-[13px] font-semibold">How do people give permission?</FormLabel><FormControl><BusinessFieldControl field={fieldMeta.find(field => field.key === 'optInMethod')!} form={form} /></FormControl><FormMessage /></FormItem>} />
       <FormField control={form.control} name="optInDescription" render={({ field }) => <FormItem><FormLabel className="text-[13px] font-semibold">Explain the opt-in experience</FormLabel><FormControl><Textarea data-testid="input-optInDescription" rows={4} placeholder="Where does a customer see the offer? What action do they take?" {...field} /></FormControl><FormMessage /></FormItem>} />
       <FormField control={form.control} name="consentCheckboxPresent" render={({ field }) => <FormItem className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-4"><FormControl><Checkbox data-testid="input-consent-checkbox-present" checked={field.value} onCheckedChange={field.onChange} className="mt-0.5" /></FormControl><div><FormLabel className="text-sm font-semibold">My web form has a separate, unchecked SMS consent checkbox.</FormLabel><FormDescription className="mt-1 text-xs leading-5">Only select if customers can choose SMS separately from other terms.</FormDescription></div></FormItem>} />
       <FormField control={form.control} name="consentCopy" render={({ field }) => <FormItem><FormLabel className="text-[13px] font-semibold">Consent language customers see</FormLabel><FormControl><Textarea data-testid="input-consent-copy" rows={4} placeholder="Paste your current SMS disclosure text." value={field.value ?? ''} onChange={field.onChange} /></FormControl><FormDescription>Include frequency, message/data rates, STOP/HELP instructions, and links when appropriate.</FormDescription><FormMessage /></FormItem>} />

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { BusinessUpdateBusinessType } from './businessUpdateBusinessType';
 import type { BusinessUpdateCountry } from './businessUpdateCountry';
 import type { BusinessUpdateEntityType } from './businessUpdateEntityType';
 import type { BusinessUpdateOptInMethod } from './businessUpdateOptInMethod';
@@ -28,6 +29,7 @@ export interface BusinessUpdate {
   brandName?: string;
   websiteUrl?: string;
   entityType?: BusinessUpdateEntityType;
+  businessType?: BusinessUpdateBusinessType;
   contactEmail?: string;
   streetAddress?: string;
   city?: string;

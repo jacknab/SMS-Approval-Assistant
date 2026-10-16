@@ -69,6 +69,7 @@ export const ListBusinessesResponseItem = zod.object({
   "brandName": zod.string().min(1).max(listBusinessesResponseOneBrandNameMax),
   "websiteUrl": zod.string().url(),
   "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
   "contactEmail": zod.string().email(),
   "streetAddress": zod.string().min(1),
   "city": zod.string().min(1),
@@ -127,6 +128,7 @@ export const CreateBusinessBody = zod.object({
   "brandName": zod.string().min(1).max(createBusinessBodyBrandNameMax),
   "websiteUrl": zod.string().url(),
   "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
   "contactEmail": zod.string().email(),
   "streetAddress": zod.string().min(1),
   "city": zod.string().min(1),
@@ -173,6 +175,7 @@ export const CreateBusinessResponse = zod.object({
   "brandName": zod.string().min(1).max(createBusinessResponseOneBrandNameMax),
   "websiteUrl": zod.string().url(),
   "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
   "contactEmail": zod.string().email(),
   "streetAddress": zod.string().min(1),
   "city": zod.string().min(1),
@@ -234,6 +237,7 @@ export const GetBusinessResponse = zod.object({
   "brandName": zod.string().min(1).max(getBusinessResponseOneBrandNameMax),
   "websiteUrl": zod.string().url(),
   "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
   "contactEmail": zod.string().email(),
   "streetAddress": zod.string().min(1),
   "city": zod.string().min(1),
@@ -291,6 +295,7 @@ export const UpdateBusinessBody = zod.object({
   "brandName": zod.string().min(1).max(updateBusinessBodyBrandNameMax).optional(),
   "websiteUrl": zod.string().url().optional(),
   "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']).optional(),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']).optional(),
   "contactEmail": zod.string().email().optional(),
   "streetAddress": zod.string().optional(),
   "city": zod.string().optional(),
@@ -337,6 +342,7 @@ export const UpdateBusinessResponse = zod.object({
   "brandName": zod.string().min(1).max(updateBusinessResponseOneBrandNameMax),
   "websiteUrl": zod.string().url(),
   "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
   "contactEmail": zod.string().email(),
   "streetAddress": zod.string().min(1),
   "city": zod.string().min(1),
@@ -424,6 +430,8 @@ export const prepareCampaignAssistantResponseIssuesMax = 12;
 
 export const prepareCampaignAssistantResponseDraftsOneCampaignDescriptionMax = 1200;
 
+export const prepareCampaignAssistantResponseDraftsOneMessageFrequencyMax = 300;
+
 export const prepareCampaignAssistantResponseDraftsOneSampleMessagesItemMax = 500;
 
 export const prepareCampaignAssistantResponseDraftsOneSampleMessagesMin = 2;
@@ -444,10 +452,50 @@ export const PrepareCampaignAssistantResponse = zod.object({
 })).max(prepareCampaignAssistantResponseIssuesMax),
   "drafts": zod.union([zod.object({
   "campaignDescription": zod.string().max(prepareCampaignAssistantResponseDraftsOneCampaignDescriptionMax),
+  "messageFrequency": zod.string().max(prepareCampaignAssistantResponseDraftsOneMessageFrequencyMax),
   "sampleMessages": zod.array(zod.string().max(prepareCampaignAssistantResponseDraftsOneSampleMessagesItemMax)).min(prepareCampaignAssistantResponseDraftsOneSampleMessagesMin).max(prepareCampaignAssistantResponseDraftsOneSampleMessagesMax),
   "optInDescription": zod.string().max(prepareCampaignAssistantResponseDraftsOneOptInDescriptionMax),
   "consentCopy": zod.string().max(prepareCampaignAssistantResponseDraftsOneConsentCopyMax)
 }),zod.null()])
+})
+
+
+/**
+ * Uses the authenticated user's selected business type and message purpose to prepare editable campaign wording. It does not save the draft or contact Twilio.
+ * @summary Draft campaign wording from a business profile
+ */
+export const createCampaignDraftBodyBusinessNameMax = 200;
+
+export const createCampaignDraftBodyBrandNameMax = 200;
+
+export const createCampaignDraftBodyWebsiteUrlMax = 2048;
+
+
+
+export const CreateCampaignDraftBody = zod.object({
+  "businessName": zod.string().min(1).max(createCampaignDraftBodyBusinessNameMax),
+  "brandName": zod.string().min(1).max(createCampaignDraftBodyBrandNameMax),
+  "websiteUrl": zod.string().url().max(createCampaignDraftBodyWebsiteUrlMax),
+  "entityType": zod.enum(['llc', 'corporation', 'sole_proprietor', 'nonprofit', 'public_company', 'other']),
+  "businessType": zod.enum(['retail_ecommerce', 'professional_services', 'home_field_services', 'healthcare_wellness', 'education', 'hospitality_events', 'financial_services', 'nonprofit', 'other']),
+  "useCase": zod.enum(['account_notifications', 'customer_care', 'marketing', 'mixed'])
+})
+
+export const createCampaignDraftResponseCampaignDescriptionMax = 1200;
+
+export const createCampaignDraftResponseMessageFrequencyMax = 300;
+
+export const createCampaignDraftResponseSampleMessagesItemMax = 500;
+
+export const createCampaignDraftResponseSampleMessagesMin = 2;
+export const createCampaignDraftResponseSampleMessagesMax = 5;
+
+
+
+export const CreateCampaignDraftResponse = zod.object({
+  "campaignDescription": zod.string().max(createCampaignDraftResponseCampaignDescriptionMax),
+  "messageFrequency": zod.string().max(createCampaignDraftResponseMessageFrequencyMax),
+  "sampleMessages": zod.array(zod.string().max(createCampaignDraftResponseSampleMessagesItemMax)).min(createCampaignDraftResponseSampleMessagesMin).max(createCampaignDraftResponseSampleMessagesMax)
 })
 
 

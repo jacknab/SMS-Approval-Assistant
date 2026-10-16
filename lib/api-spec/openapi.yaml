@@ -170,6 +170,33 @@ paths:
           description: Business not found
         "502":
           description: Assistant could not produce a valid response
+  /campaign-drafts:
+    post:
+      operationId: createCampaignDraft
+      tags: [campaign-assistant]
+      summary: Draft campaign wording from a business profile
+      description: Uses the authenticated user's selected business type and message purpose to prepare editable campaign wording. It does not save the draft or contact Twilio.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignDraftInput"
+      responses:
+        "200":
+          description: Editable campaign wording suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignDraft"
+        "400":
+          description: Invalid request
+        "429":
+          description: Assistant request limit reached
+        "502":
+          description: Assistant could not produce a valid response
+        "503":
+          description: OpenAI is not configured
   /businesses/{businessId}/materials:
     parameters:
       - name: businessId
@@ -272,6 +299,7 @@ components:
         - brandName
         - websiteUrl
         - entityType
+        - businessType
         - contactEmail
         - streetAddress
         - city
@@ -304,6 +332,9 @@ components:
         entityType:
           type: string
           enum: [llc, corporation, sole_proprietor, nonprofit, public_company, other]
+        businessType:
+          type: string
+          enum: [retail_ecommerce, professional_services, home_field_services, healthcare_wellness, education, hospitality_events, financial_services, nonprofit, other]
         contactEmail:
           type: string
           format: email
@@ -369,6 +400,9 @@ components:
         entityType:
           type: string
           enum: [llc, corporation, sole_proprietor, nonprofit, public_company, other]
+        businessType:
+          type: string
+          enum: [retail_ecommerce, professional_services, home_field_services, healthcare_wellness, education, hospitality_events, financial_services, nonprofit, other]
         contactEmail:
           type: string
           format: email
@@ -600,11 +634,14 @@ components:
           maxLength: 600
     CampaignAssistantDrafts:
       type: object
-      required: [campaignDescription, sampleMessages, optInDescription, consentCopy]
+      required: [campaignDescription, messageFrequency, sampleMessages, optInDescription, consentCopy]
       properties:
         campaignDescription:
           type: string
           maxLength: 1200
+        messageFrequency:
+          type: string
+          maxLength: 300
         sampleMessages:
           type: array
           minItems: 2
@@ -618,6 +655,48 @@ components:
         consentCopy:
           type: string
           maxLength: 1200
+    CampaignDraftInput:
+      type: object
+      required: [businessName, brandName, websiteUrl, entityType, businessType, useCase]
+      properties:
+        businessName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        brandName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        websiteUrl:
+          type: string
+          format: uri
+          maxLength: 2048
+        entityType:
+          type: string
+          enum: [llc, corporation, sole_proprietor, nonprofit, public_company, other]
+        businessType:
+          type: string
+          enum: [retail_ecommerce, professional_services, home_field_services, healthcare_wellness, education, hospitality_events, financial_services, nonprofit, other]
+        useCase:
+          type: string
+          enum: [account_notifications, customer_care, marketing, mixed]
+    CampaignDraft:
+      type: object
+      required: [campaignDescription, messageFrequency, sampleMessages]
+      properties:
+        campaignDescription:
+          type: string
+          maxLength: 1200
+        messageFrequency:
+          type: string
+          maxLength: 300
+        sampleMessages:
+          type: array
+          minItems: 2
+          maxItems: 5
+          items:
+            type: string
+            maxLength: 500
     CampaignAssistantOutput:
       type: object
       required: [answer, issues, drafts]

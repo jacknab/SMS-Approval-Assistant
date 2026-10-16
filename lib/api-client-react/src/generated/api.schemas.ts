@@ -21,6 +21,21 @@ export const BusinessInputEntityType = {
   other: 'other',
 } as const;
 
+export type BusinessInputBusinessType = typeof BusinessInputBusinessType[keyof typeof BusinessInputBusinessType];
+
+
+export const BusinessInputBusinessType = {
+  retail_ecommerce: 'retail_ecommerce',
+  professional_services: 'professional_services',
+  home_field_services: 'home_field_services',
+  healthcare_wellness: 'healthcare_wellness',
+  education: 'education',
+  hospitality_events: 'hospitality_events',
+  financial_services: 'financial_services',
+  nonprofit: 'nonprofit',
+  other: 'other',
+} as const;
+
 export type BusinessInputCountry = typeof BusinessInputCountry[keyof typeof BusinessInputCountry];
 
 
@@ -68,6 +83,7 @@ export interface BusinessInput {
   brandName: string;
   websiteUrl: string;
   entityType: BusinessInputEntityType;
+  businessType: BusinessInputBusinessType;
   contactEmail: string;
   /** @minLength 1 */
   streetAddress: string;
@@ -108,6 +124,21 @@ export const BusinessUpdateEntityType = {
   sole_proprietor: 'sole_proprietor',
   nonprofit: 'nonprofit',
   public_company: 'public_company',
+  other: 'other',
+} as const;
+
+export type BusinessUpdateBusinessType = typeof BusinessUpdateBusinessType[keyof typeof BusinessUpdateBusinessType];
+
+
+export const BusinessUpdateBusinessType = {
+  retail_ecommerce: 'retail_ecommerce',
+  professional_services: 'professional_services',
+  home_field_services: 'home_field_services',
+  healthcare_wellness: 'healthcare_wellness',
+  education: 'education',
+  hospitality_events: 'hospitality_events',
+  financial_services: 'financial_services',
+  nonprofit: 'nonprofit',
   other: 'other',
 } as const;
 
@@ -158,6 +189,7 @@ export interface BusinessUpdate {
   brandName?: string;
   websiteUrl?: string;
   entityType?: BusinessUpdateEntityType;
+  businessType?: BusinessUpdateBusinessType;
   contactEmail?: string;
   streetAddress?: string;
   city?: string;
@@ -340,6 +372,8 @@ export interface CampaignAssistantIssue {
 export interface CampaignAssistantDrafts {
   /** @maxLength 1200 */
   campaignDescription: string;
+  /** @maxLength 300 */
+  messageFrequency: string;
   /**
      * @minItems 2
      * @maxItems 5
@@ -350,6 +384,74 @@ export interface CampaignAssistantDrafts {
   optInDescription: string;
   /** @maxLength 1200 */
   consentCopy: string;
+}
+
+export type CampaignDraftInputEntityType = typeof CampaignDraftInputEntityType[keyof typeof CampaignDraftInputEntityType];
+
+
+export const CampaignDraftInputEntityType = {
+  llc: 'llc',
+  corporation: 'corporation',
+  sole_proprietor: 'sole_proprietor',
+  nonprofit: 'nonprofit',
+  public_company: 'public_company',
+  other: 'other',
+} as const;
+
+export type CampaignDraftInputBusinessType = typeof CampaignDraftInputBusinessType[keyof typeof CampaignDraftInputBusinessType];
+
+
+export const CampaignDraftInputBusinessType = {
+  retail_ecommerce: 'retail_ecommerce',
+  professional_services: 'professional_services',
+  home_field_services: 'home_field_services',
+  healthcare_wellness: 'healthcare_wellness',
+  education: 'education',
+  hospitality_events: 'hospitality_events',
+  financial_services: 'financial_services',
+  nonprofit: 'nonprofit',
+  other: 'other',
+} as const;
+
+export type CampaignDraftInputUseCase = typeof CampaignDraftInputUseCase[keyof typeof CampaignDraftInputUseCase];
+
+
+export const CampaignDraftInputUseCase = {
+  account_notifications: 'account_notifications',
+  customer_care: 'customer_care',
+  marketing: 'marketing',
+  mixed: 'mixed',
+} as const;
+
+export interface CampaignDraftInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  businessName: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  brandName: string;
+  /** @maxLength 2048 */
+  websiteUrl: string;
+  entityType: CampaignDraftInputEntityType;
+  businessType: CampaignDraftInputBusinessType;
+  useCase: CampaignDraftInputUseCase;
+}
+
+export interface CampaignDraft {
+  /** @maxLength 1200 */
+  campaignDescription: string;
+  /** @maxLength 300 */
+  messageFrequency: string;
+  /**
+     * @minItems 2
+     * @maxItems 5
+     * @items.maxLength 500
+     */
+  sampleMessages: string[];
 }
 
 export interface CampaignAssistantOutput {
